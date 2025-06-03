@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Word Connections</title>
+  <style>
+    body {
+      background-color: rgb(190, 157, 247);
+      color: rgb(37, 0, 139);
+      font-family: 'Times New Roman', Times, serif, serif;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 120px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .drop-zone {
+      width: 120px;
+      height: 50px;
+      border: 2px dashed #333;
+      line-height: 40px;
+      background-color: #fff;
+      font-weight: bold;
+    }
+
+    .word {
+      width: 100px;
+      padding: 5px;
+      background-color: white;
+      border: 1px solid #000;
+      cursor: grab;
+      margin: 5px auto;
+    }
+
+    .correct {
+      background-color: lightgreen !important;
+    }
+
+    .word-bank {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+<a href="index.html">← Back to Home</a>
+<h1>Museum Connections</h1>
+<p>Drag the words into the boxes to form 4 groups of 4 related words.</p>
+
+<div class="grid" id="dropGrid" >
+  <!-- 16 drop zones -->
+  <!-- They will be filled dynamically -->
+</div>
+
+<div class="word-bank" id="wordBank">
+  <!-- 16 words -->
+</div>
+
+<script>
+const words = [
+  "Van Gogh", "Picasso", "Monet", "Da Vinci", // Artists
+  "1", "11", "111", "1111", // Paintings
+  "2", "22", "222", "2222", // Tools
+  "3", "33", "333", "3333" // Museums
+];
+
+const correctGroups = [
+  ["Van Gogh", "Picasso", "Monet", "Da Vinci"],
+  [ "1", "11", "111", "1111",],
+  ["2", "22", "222", "2222"],
+  ["3", "33", "333", "3333"]
+];
+
+// Create draggable words
+words.sort(() => Math.random() - 0.5); // Shuffle
+const wordBank = document.getElementById('wordBank');
+words.forEach(word => {
+  const div = document.createElement('div');
+  div.textContent = word;
+  div.className = 'word';
+  div.draggable = true;
+  div.id = word;
+  div.ondragstart = (e) => e.dataTransfer.setData("text/plain", word);
+  wordBank.appendChild(div);
+});
+
+// Create drop zones
+const dropGrid = document.getElementById('dropGrid');
+for (let i = 0; i < 16; i++) {
+  const zone = document.createElement('div');
+  zone.className = 'drop-zone';
+  zone.ondragover = (e) => e.preventDefault();
+  zone.ondrop = (e) => {
+    e.preventDefault();
+    const word = e.dataTransfer.getData("text/plain");
+    const wordEl = document.getElementById(word);
+    if (!zone.hasChildNodes()) {
+      zone.appendChild(wordEl);
+    }
+    checkRows();
+  };
+  dropGrid.appendChild(zone);
+}
+
+// Check if any row contains a correct group
+function checkRows() {
+  const zones = document.querySelectorAll('.drop-zone');
+  for (let i = 0; i < 4; i++) {
+    const rowWords = [];
+    const rowZones = [];
+    for (let j = 0; j < 4; j++) {
+      const index = i * 4 + j;
+      rowZones.push(zones[index]);
+      if (zones[index].firstChild) {
+        rowWords.push(zones[index].firstChild.textContent);
+      }
+    }
+    rowZones.forEach(zone => zone.classList.remove('correct'));
+    if (rowWords.length === 4 && correctGroups.some(group => arraysEqual(new Set(group), new Set(rowWords)))) {
+      rowZones.forEach(zone => zone.classList.add('correct'));
+    }
+  }
+}
+
+function arraysEqual(a, b) {
+  if (a.size !== b.size) return false;
+  for (let val of a) if (!b.has(val)) return false;
+  return true;
+}
+</script>
+</body>
+</html>
